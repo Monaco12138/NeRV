@@ -31,24 +31,24 @@ def main():
     parser.add_argument('--scale', type=int, default=1, help='scale-up facotr for data transformation,  added to suffix!!!!')
     parser.add_argument('--frame_gap', type=int, default=1, help='frame selection gap')
     parser.add_argument('--augment', type=int, default=0, help='augment frames between frames,  added to suffix!!!!')
-    parser.add_argument('--dataset', type=str, default='UVG', help='dataset',)
+    parser.add_argument('--dataset', type=str, default='bunny', help='dataset',)
     parser.add_argument('--test_gap', default=1, type=int, help='evaluation gap')
 
-# NERV architecture parameters
+   # NERV architecture parameters
     # embedding parameters
-    parser.add_argument('--embed', type=str, default='1.25_80', help='base value/embed length for position encoding')
+    parser.add_argument('--embed', type=str, default='1.25_40', help='base value/embed length for position encoding')
 
     # FC + Conv parameters
-    parser.add_argument('--stem_dim_num', type=str, default='1024_1', help='hidden dimension and length')
-    parser.add_argument('--fc_hw_dim', type=str, default='9_16_128', help='out size (h,w) for mlp')
-    parser.add_argument('--expansion', type=float, default=8, help='channel expansion from fc to conv')
+    parser.add_argument('--stem_dim_num', type=str, default='512_1', help='hidden dimension and length')
+    parser.add_argument('--fc_hw_dim', type=str, default='9_16_26', help='out size (h,w) for mlp')
+    parser.add_argument('--expansion', type=float, default=1.0, help='channel expansion from fc to conv')
     parser.add_argument('--reduction', type=int, default=2)
-    parser.add_argument('--strides', type=int, nargs='+', default=[5, 3, 2, 2, 2], help='strides list')
+    parser.add_argument('--strides', type=int, nargs='+', default=[5, 2, 2, 2, 2], help='strides list')
     parser.add_argument('--num-blocks', type=int, default=1)
 
     parser.add_argument('--norm', default='none', type=str, help='norm layer for generator', choices=['none', 'bn', 'in'])
-    parser.add_argument('--act', type=str, default='gelu', help='activation to use', choices=['relu', 'leaky', 'leaky01', 'relu6', 'gelu', 'swish', 'softplus', 'hardswish'])
-    parser.add_argument('--lower-width', type=int, default=32, help='lowest channel width for output feature maps')
+    parser.add_argument('--act', type=str, default='swish', help='activation to use', choices=['relu', 'leaky', 'leaky01', 'relu6', 'gelu', 'swish', 'softplus', 'hardswish'])
+    parser.add_argument('--lower-width', type=int, default=96, help='lowest channel width for output feature maps')
     parser.add_argument("--single_res", action='store_true', help='single resolution,  added to suffix!!!!')
     parser.add_argument("--conv_type", default='conv', type=str,  help='upscale methods, can add bilinear and deconvolution methods', choices=['conv', 'deconv', 'bilinear'])
 
@@ -56,14 +56,14 @@ def main():
     parser.add_argument('-j', '--workers', type=int, help='number of data loading workers', default=4)
     parser.add_argument('-b', '--batchSize', type=int, default=1, help='input batch size')
     parser.add_argument('--not_resume_epoch', action='store_true', help='resuming start_epoch from checkpoint')
-    parser.add_argument('-e', '--epochs', type=int, default=150, help='number of epochs to train for')
+    parser.add_argument('-e', '--epochs', type=int, default=300, help='number of epochs to train for')
     parser.add_argument('--cycles', type=int, default=1, help='epoch cycles for training')
     parser.add_argument('--warmup', type=float, default=0.2, help='warmup epoch ratio compared to the epochs, default=0.2,  added to suffix!!!!')
-    parser.add_argument('--lr', type=float, default=0.001, help='learning rate, default=0.0002')
+    parser.add_argument('--lr', type=float, default=0.0005, help='learning rate, default=0.0002')
     parser.add_argument('--lr_type', type=str, default='cosine', help='learning rate type, default=cosine')
     parser.add_argument('--lr_steps', default=[], type=float, nargs="+", metavar='LRSteps', help='epochs to decay learning rate by 10,  added to suffix!!!!')
     parser.add_argument('--beta', type=float, default=0.5, help='beta for adam. default=0.5,  added to suffix!!!!')
-    parser.add_argument('--loss_type', type=str, default='L2', help='loss type, default=L2')
+    parser.add_argument('--loss_type', type=str, default='Fusion6', help='loss type, default=L2')
     parser.add_argument('--lw', type=float, default=1.0, help='loss weight,  added to suffix!!!!')
     parser.add_argument('--sigmoid', action='store_true', help='using sigmoid for output prediction')
 
@@ -81,8 +81,7 @@ def main():
 
     # distribute learning parameters
     parser.add_argument('--manualSeed', type=int, default=1, help='manual seed')
-    parser.add_argument('--init_method', default='tcp://127.0.0.1:9888', type=str,
-                        help='url used to set up distributed training')
+    parser.add_argument('--init_method', default='tcp://127.0.0.1:9888', type=str, help='url used to set up distributed training')
     parser.add_argument('-d', '--distributed', action='store_true', default=False, help='distributed training,  added to suffix!!!!')
 
     # logging, output directory, 
@@ -90,14 +89,15 @@ def main():
     parser.add_argument('-p', '--print-freq', default=50, type=int,)
     parser.add_argument('--weight', default='None', type=str, help='pretrained weights for ininitialization')
     parser.add_argument('--overwrite', action='store_true', help='overwrite the output dir if already exists')
-    parser.add_argument('--outf', default='unify', help='folder to output images and model checkpoints')
+    parser.add_argument('--outf', default='bunny_ab', help='folder to output images and model checkpoints')
     parser.add_argument('--suffix', default='', help="suffix str for outf")
 
     args = parser.parse_args()
-        
     args.warmup = int(args.warmup * args.epochs)
-
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     print(args)
+
+    #更改输出设置，保留4位有效数字
     torch.set_printoptions(precision=4) 
 
     if args.debug:
@@ -123,8 +123,8 @@ def main():
 
     args.outf = os.path.join(args.outf, exp_id)
     if args.overwrite and os.path.isdir(args.outf):
-    	print('Will overwrite the existing output dir!')
-    	shutil.rmtree(args.outf)
+        print('Will overwrite the existing output dir!')
+        shutil.rmtree(args.outf)
 
     if not os.path.isdir(args.outf):
         os.makedirs(args.outf)
@@ -133,6 +133,7 @@ def main():
     args.init_method =  f'tcp://127.0.0.1:{port}'
     print(f'init_method: {args.init_method}', flush=True)
 
+    # 是否多卡
     torch.set_printoptions(precision=2) 
     args.ngpus_per_node = torch.cuda.device_count()
     if args.distributed and args.ngpus_per_node > 1:
@@ -141,6 +142,7 @@ def main():
         train(None, args)
 
 def train(local_rank, args):
+    #加速优化，随机种子
     cudnn.benchmark = True
     torch.manual_seed(args.manualSeed)
     np.random.seed(args.manualSeed)
@@ -481,6 +483,7 @@ def evaluate(model, val_dataloader, pe, local_rank, args):
     for i, (data,  norm_idx) in enumerate(val_dataloader):
         if i > 10 and args.debug:
             break
+        print( norm_idx )
         embed_input = pe(norm_idx)
         if local_rank is not None:
             data = data.cuda(local_rank, non_blocking=True)

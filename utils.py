@@ -92,6 +92,9 @@ def all_reduce(tensors, average=True):
 
 
 class PositionalEncoding(nn.Module):
+
+    # e.g. 1.25_40-> b=1.25, l=40
+    # lbase = 1.25, embed_length = 2*l = 80
     def __init__(self, pe_embed):
         super(PositionalEncoding, self).__init__()
         self.pe_embed = pe_embed.lower()
@@ -110,6 +113,8 @@ class PositionalEncoding(nn.Module):
             for i in range(self.levels):
                 temp_value = pos * self.lbase **(i) * math.pi
                 pe_list += [torch.sin(temp_value), torch.cos(temp_value)]
+            
+            # [1, embed_length]
             return torch.stack(pe_list, 1)
 
 
