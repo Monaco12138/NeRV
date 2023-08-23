@@ -51,3 +51,65 @@ stem_dim_num='512_1',
  warmup=60, 
  weight='checkpoints/nerv_S.pth', 
  workers=4)
+
+
+
+===== Model =====
+Generator(
+  (stem): Sequential(
+    (0): Linear(in_features=80, out_features=512, bias=True)
+    (1): SiLU(inplace=True)
+    (2): Linear(in_features=512, out_features=3744, bias=True)
+    (3): SiLU(inplace=True)
+  )
+  (layers): ModuleList(
+    (0): NeRVBlock(
+      (conv): CustomConv(
+        (conv): Conv2d(26, 650, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (up_scale): PixelShuffle(upscale_factor=5)
+      )
+      (norm): Identity()
+      (act): SiLU(inplace=True)
+    )
+    (1): NeRVBlock(
+      (conv): CustomConv(
+        (conv): Conv2d(26, 384, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (up_scale): PixelShuffle(upscale_factor=2)
+      )
+      (norm): Identity()
+      (act): SiLU(inplace=True)
+    )
+    (2): NeRVBlock(
+      (conv): CustomConv(
+        (conv): Conv2d(96, 384, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (up_scale): PixelShuffle(upscale_factor=2)
+      )
+      (norm): Identity()
+      (act): SiLU(inplace=True)
+    )
+    (3): NeRVBlock(
+      (conv): CustomConv(
+        (conv): Conv2d(96, 384, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (up_scale): PixelShuffle(upscale_factor=2)
+      )
+      (norm): Identity()
+      (act): SiLU(inplace=True)
+    )
+    (4): NeRVBlock(
+      (conv): CustomConv(
+        (conv): Conv2d(96, 384, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (up_scale): PixelShuffle(upscale_factor=2)
+      )
+      (norm): Identity()
+      (act): SiLU(inplace=True)
+    )
+  )
+  (head_layers): ModuleList(
+    (0): None
+    (1): None
+    (2): None
+    (3): None
+    (4): Conv2d(96, 3, kernel_size=(1, 1), stride=(1, 1))
+  )
+)
+ Model Params: 3.201905M

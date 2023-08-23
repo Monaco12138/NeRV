@@ -136,9 +136,9 @@ class Generator(nn.Module):
     def __init__(self, **kargs):
         super().__init__()
 
-        stem_dim, stem_num = [int(x) for x in kargs['stem_dim_num'].split('_')]
-        self.fc_h, self.fc_w, self.fc_dim = [int(x) for x in kargs['fc_hw_dim'].split('_')]
-        mlp_dim_list = [kargs['embed_length']] + [stem_dim] * stem_num + [self.fc_h *self.fc_w *self.fc_dim]
+        stem_dim, stem_num = [int(x) for x in kargs['stem_dim_num'].split('_')] # 512, 1
+        self.fc_h, self.fc_w, self.fc_dim = [int(x) for x in kargs['fc_hw_dim'].split('_')] # 9, 16, 26
+        mlp_dim_list = [kargs['embed_length']] + [stem_dim] * stem_num + [self.fc_h *self.fc_w *self.fc_dim] #[80, 512, 9*16*26]
         self.stem = MLP(dim_list=mlp_dim_list, act=kargs['act'])
         
         # BUILD CONV LAYERS
@@ -153,8 +153,8 @@ class Generator(nn.Module):
                 new_ngf = max(ngf // (1 if stride == 1 else kargs['reduction']), kargs['lower_width'])
 
             for j in range(kargs['num_blocks']):
-                self.layers.append(NeRVBlock(ngf=ngf, new_ngf=new_ngf, stride=1 if j else stride,
-                    bias=kargs['bias'], norm=kargs['norm'], act=kargs['act'], conv_type=kargs['conv_type']))
+                self.layers.append( NeRVBlock(ngf=ngf, new_ngf=new_ngf, stride=1 if j else stride,
+                    bias=kargs['bias'], norm=kargs['norm'], act=kargs['act'], conv_type=kargs['conv_type']) )
                 ngf = new_ngf
 
             # build head classifier, upscale feature layer, upscale img layer 

@@ -156,7 +156,6 @@ def train(local_rank, args):
     model = Generator(embed_length=args.embed_length, stem_dim_num=args.stem_dim_num, fc_hw_dim=args.fc_hw_dim, expansion=args.expansion, 
         num_blocks=args.num_blocks, norm=args.norm, act=args.act, bias = True, reduction=args.reduction, conv_type=args.conv_type,
         stride_list=args.strides,  sin_res=args.single_res,  lower_width=args.lower_width, sigmoid=args.sigmoid)
-
     ##### prune model params and flops #####
     prune_net = args.prune_ratio < 1
     # import pdb; pdb.set_trace; from IPython import embed; embed()
@@ -192,7 +191,6 @@ def train(local_rank, args):
         writer = SummaryWriter(os.path.join(args.outf, f'param_{total_params}M', 'tensorboard'))
     else:
         writer = None
-
     # distrite model to gpu or parallel
     print("Use GPU: {} for training".format(local_rank))
     if args.distributed and args.ngpus_per_node > 1:
@@ -483,7 +481,7 @@ def evaluate(model, val_dataloader, pe, local_rank, args):
     for i, (data,  norm_idx) in enumerate(val_dataloader):
         if i > 10 and args.debug:
             break
-        print( norm_idx )
+        #print( norm_idx )
         embed_input = pe(norm_idx)
         if local_rank is not None:
             data = data.cuda(local_rank, non_blocking=True)
@@ -516,7 +514,8 @@ def evaluate(model, val_dataloader, pe, local_rank, args):
         val_psnr = torch.cat(psnr_list, dim=0)              #(batchsize, num_stage)
         val_psnr = torch.mean(val_psnr, dim=0)              #(num_stage)
         val_msssim = torch.cat(msssim_list, dim=0)          #(batchsize, num_stage)
-        val_msssim = torch.mean(val_msssim.float(), dim=0)  #(num_stage)        
+        val_msssim = torch.mean(val_msssim.float(), dim=0)  #(num_stage)      
+        #print('frame idx:{},  time:{}s'.format(i,  sum(time_list)) )  
         if i % args.print_freq == 0:
             fps = fwd_num * (i+1) * args.batchSize / sum(time_list)
             print_str = 'Rank:{}, Step [{}/{}], PSNR: {}, MSSSIM: {} FPS: {}'.format(
