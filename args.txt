@@ -112,4 +112,8 @@ Generator(
     (4): Conv2d(96, 3, kernel_size=(1, 1), stride=(1, 1))
   )
 )
- Model Params: 3.201905M
+Model Params: 3.201905M (12.8MB)
+
+stem: 7.9MB
+layers: 5MB
+head_layers: 2.2KB

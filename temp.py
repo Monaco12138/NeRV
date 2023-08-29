@@ -1,6 +1,6 @@
 import torch
 import math
-
+from model_nerv import Generator
 
 # x = []
 # for i in range(5):
@@ -32,11 +32,41 @@ import math
 # print( embedding.shape )
 # print( embedding )
 
-X = torch.arange(3*3).reshape(3,3)
-print(X)
-Y = torch.arange(3*3).reshape(3,3) + 9
-print(Y)
+model = Generator(embed_length=80, stem_dim_num='512_1', fc_hw_dim='9_16_26', expansion=1.0, 
+        num_blocks=1, norm='none', act='swish', bias = True, reduction=2, conv_type='conv',
+        stride_list=[5, 2, 2, 2, 2],  sin_res=True,  lower_width=96, sigmoid=False)
 
-print( torch.stack([X,Y], 0), torch.stack([X,Y], 0).shape )
-print( torch.stack([X,Y], 1), torch.stack([X,Y], 1).shape )
-print( torch.stack([X,Y], 2), torch.stack([X,Y], 2).shape )
+# for k, v in model.named_parameters():
+#     print(k)
+
+# for p in model.parameters():
+#     print(p.shape)
+
+#torch.save( model.state_dict(), './temp.pth' )
+
+model_dict = model.state_dict()
+print( model_dict.keys() )
+
+mlp_dict = {}
+for k, v in model_dict.items():
+    if 'stem' in k:
+        print(k)
+        mlp_dict[k] = v
+
+print("----")
+body_dict = {}
+for k, v in model_dict.items():
+    if 'layers' in k and 'head_layers' not in k:
+        print(k)
+        body_dict[k] = v
+
+print("----")
+tail_dict = {}
+for k, v in model_dict.items():
+    if 'head_layers' in k:
+        print(k)
+        tail_dict[k] = v
+
+torch.save( mlp_dict, './head.pth')
+torch.save( body_dict, './body.pth')
+torch.save( tail_dict, './tail.pth')
