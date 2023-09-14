@@ -67,6 +67,14 @@ for k, v in model_dict.items():
         print(k)
         tail_dict[k] = v
 
-torch.save( mlp_dict, './head.pth')
-torch.save( body_dict, './body.pth')
-torch.save( tail_dict, './tail.pth')
+hidden_list = [80, 512, 1024, 2048]
+
+layers = []
+lastv = hidden_list[0]
+
+for hidden in hidden_list[1:-1]:
+    layers.append( (lastv, hidden) )
+    layers.append( 'ReLU')
+    lastv = hidden
+layers.append( (lastv, hidden_list[-1]))
+print( layers )
